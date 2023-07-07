@@ -1,0 +1,65 @@
+esphome:
+  name: esphome-web-fd8c88
+  friendly_name: wroom32-test1
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: xxx
+
+ota:
+web_server:
+  port: 80
+
+wifi:
+  networks:
+  - ssid: !secret wifi1_ssid
+    password: !secret wifi1_pass
+  - ssid: !secret wifi2_ssid
+    password: !secret wifi2_pass
+  - ssid: !secret wifi3_ssid
+    password: !secret wifi3_pass
+  ap:
+    ssid: "wroom32-test1 Fallback"
+    password: !secret esp_fallbackpass
+
+captive_portal:
+#
+sensor:
+  # working well with JSN-SR04T
+  - platform: ultrasonic
+    trigger_pin: GPIO22
+    echo_pin: GPIO23
+    name: "Ultrasonic Sensor1"
+    update_interval: 1s
+    timeout: 3.0m
+    pulse_time: 200ms
+    id: ultrasonic1
+    filters:
+    - median:
+        window_size: 7
+        send_every: 10
+        send_first_at: 10
+#
+binary_sensor:
+  - platform: template
+    name: "Door1"
+    id: door1
+    device_class: door
+    # true - the door is open
+    # false - the door is closed
+    lambda: |-
+      if (id(ultrasonic1).state > 1.0 ) {   
+        return true; 
+        }
+      else {
+        return false;
+        }
